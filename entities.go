@@ -14,4 +14,5 @@ type TaskEntity struct {
 	Description string
 	Status      string
 	Deadline    time.Time
+	LID         uint
 }
