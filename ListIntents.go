@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -17,7 +16,7 @@ type FetchListIntent struct {
 //fetch list function
 func (fetchListIntent FetchListIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var list List
-	var errors []error
+	var errors error
 
 	fetchListIntent.ListRepo = TodoList{}
 	params := mux.Vars(r)
@@ -25,19 +24,16 @@ func (fetchListIntent FetchListIntent) Enact(w http.ResponseWriter, r *http.Requ
 	list, errors = fetchListIntent.ListRepo.Fetch(name)
 
 	w.Header().Set("Content-Type", "application/json")
-	if len(errors) == 0 {
+	if errors == nil {
 		listJSON, err := json.Marshal(list)
 
 		if err != nil {
-			json.NewEncoder(w).Encode(err)
-			log.Fatal("Cannot encode to JSON -", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write(listJSON)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("List does not exist -", errors)
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	}
 	return
 }
@@ -50,24 +46,22 @@ type CreateListIntent struct {
 //create list function
 func (createListIntent CreateListIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var list List
-	var errors []error
+	var errors error
 
+	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot read request body -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	err = json.Unmarshal(body, &list)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot encode to JSON -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	createListIntent.ListRepo = TodoList{}
 	errors = createListIntent.ListRepo.Create(list)
-	if len(errors) != 0 {
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Cannot create list -", errors)
+	if errors != nil {
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -82,25 +76,22 @@ type UpdateListNameIntent struct {
 //update list name function
 func (updateListIntent UpdateListNameIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var list List
-	var errors []error
+	var errors error
 
+	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot read request body -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	err = json.Unmarshal(body, &list)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot encode to JSON ", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	updateListIntent.ListRepo = TodoList{}
 	errors = updateListIntent.ListRepo.Update(list)
-	if len(errors) != 0 {
-		w.WriteHeader(http.StatusNoContent)
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Cannot update list -", errors)
+	if errors != nil {
+		http.Error(w, errors.Error(), http.StatusNoContent)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -114,16 +105,16 @@ type DeleteListIntent struct {
 
 //delete function
 func (deleteListIntent DeleteListIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var errors []error
+	var errors error
 
 	params := mux.Vars(r)
 	name := params["name"]
 
+	w.Header().Set("Content-Type", "application/json")
 	deleteListIntent.ListRepo = TodoList{}
 	errors = deleteListIntent.ListRepo.Delete(name)
-	if len(errors) != 0 {
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Cannot delete list -", errors)
+	if errors != nil {
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -138,25 +129,22 @@ type FetchAllListIntent struct {
 //fetch lists function
 func (fetchAllIntent FetchAllListIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var lists []List
-	var errors []error
+	var errors error
 
 	fetchAllIntent.ListRepo = TodoList{}
 	lists, errors = fetchAllIntent.ListRepo.FetchAll()
 
 	w.Header().Set("Content-Type", "application/json")
-	if len(errors) == 0 {
+	if errors == nil {
 		listsJSON, err := json.Marshal(lists)
 
 		if err != nil {
-			json.NewEncoder(w).Encode(err)
-			log.Fatal("Cannot encode to JSON -", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write(listsJSON)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("No List exist -", errors)
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	}
 	return
 }

@@ -6,7 +6,7 @@ import "time"
 type List struct {
 	ID        uint
 	Name      string
-	CreatedAt time.Time `json:"timestamp,omitempty"`
+	CreatedAt time.Time `json:"ctimestamp,omitempty"`
 	UpdatedAt time.Time `json:"utimestamp,omitempty"`
 	Tasks     []Task
 }

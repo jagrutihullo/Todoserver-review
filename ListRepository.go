@@ -15,24 +15,26 @@ type TodoList struct {
 
 //repository for todolist
 type TodoListRepository interface {
-	Create(todoEntity List) []error
+	Create(todoEntity List) error
 
-	Fetch(name string) (List, []error)
+	Fetch(name string) (List, error)
 
-	Update(todoEntity List) []error
+	Update(todoEntity List) error
 
-	Delete(name string) []error
+	Delete(name string) error
 
-	FetchAll() ([]List, []error)
+	FetchAll() ([]List, error)
 }
 
 //create list with name
-func (todoList TodoList) Create(todoEntity List) []error {
-	var errors []error
+func (todoList TodoList) Create(todoEntity List) error {
+	var error1 error
+	var errorsArr []error
+
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
 	if db.HasTable(&TodoList{}) == false {
@@ -41,87 +43,105 @@ func (todoList TodoList) Create(todoEntity List) []error {
 	}
 
 	todoList.Name = todoEntity.Name
-	errors = db.Create(&todoList).GetErrors()
-	return errors
+	errorsArr = db.Create(&todoList).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return error1
+
 }
 
 //update list name only
-func (todoList TodoList) Update(todoEntity List) []error {
-	var errors []error
+func (todoList TodoList) Update(todoEntity List) error {
+	var error1 error
+	var errorsArr []error
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	errors = db.Find(&todoList, todoEntity.ID).GetErrors()
-	if len(errors) != 0 {
-		return errors
+	errorsArr = db.Find(&todoList, todoEntity.ID).GetErrors()
+	if len(errorsArr) != 0 {
+		error1 = ErrorsConv(errorsArr)
+		return error1
 	}
 	todoList.Name = todoEntity.Name
-	errors = db.Save(&todoList).GetErrors()
-	return errors
+	errorsArr = db.Save(&todoList).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return error1
 }
 
 //delete list - gorm creates TIMESTAMP deleted_at, not actual delete
-func (todoList TodoList) Delete(name string) []error {
+func (todoList TodoList) Delete(name string) error {
 	var tasks []TaskModel
-	var errors []error
+	var error1 error
+	var errorsArr []error
+
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	errors = db.First(&todoList, "name = ? and isnull(deleted_at)", name).GetErrors()
-	if len(errors) != 0 {
-		return errors
+	errorsArr = db.First(&todoList, "name = ? and isnull(deleted_at)", name).GetErrors()
+	if len(errorsArr) != 0 {
+		error1 = ErrorsConv(errorsArr)
+		return error1
 	}
 
 	db.Find(&tasks, "l_id = ? and isnull(deleted_at)", todoList.ID)
 	for i := range tasks {
-		errors = db.Delete(tasks[i]).GetErrors()
-		if len(errors) != 0 {
-			return errors
+		errorsArr = db.Delete(tasks[i]).GetErrors()
+		if len(errorsArr) != 0 {
+			error1 = ErrorsConv(errorsArr)
+			return error1
 		}
 	}
 
-	errors = db.Delete(todoList).GetErrors()
-	return errors
+	errorsArr = db.Delete(todoList).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return error1
 }
 
 //fetch given list by name and tasks under that list
-func (todoList TodoList) Fetch(name string) (List, []error) {
+func (todoList TodoList) Fetch(name string) (List, error) {
 	var tempList List
-	var errors []error
+	var error1 error
+	var errorsArr []error
+
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return tempList, []error{err}
+		return tempList, err
 	}
 
-	errors = db.First(&todoList, "name = ? and isnull(deleted_at)", name).Scan(&tempList).GetErrors()
-	if len(errors) != 0 {
-		return tempList, errors
+	errorsArr = db.First(&todoList, "name = ? and isnull(deleted_at)", name).Scan(&tempList).GetErrors()
+	if len(errorsArr) != 0 {
+		error1 = ErrorsConv(errorsArr)
+		return tempList, error1
 	}
 
-	errors = db.Find(&todoList.Tasks, "l_id = ? and isnull(deleted_at)", todoList.ID).Scan(&tempList.Tasks).GetErrors()
-	return tempList, errors
+	errorsArr = db.Find(&todoList.Tasks, "l_id = ? and "+
+		"isnull(deleted_at)", todoList.ID).Scan(&tempList.Tasks).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return tempList, error1
 }
 
 //fetch all lists without showing tasks
-func (todoList TodoList) FetchAll() ([]List, []error) {
+func (todoList TodoList) FetchAll() ([]List, error) {
 	var tempList []List
-	var errors []error
+	var error1 error
+	var errorsArr []error
 
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return tempList, []error{err}
+		return tempList, err
 	}
 
-	errors = db.Table("todo_lists").Where("isnull(deleted_at)").Select("id, name, created_at, updated_at").Scan(&tempList).GetErrors()
-	return tempList, errors
+	errors = db.Table("todo_lists").Where("isnull(deleted_at)").Select("id, name, " +
+		"created_at, updated_at").Scan(&tempList).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return tempList, error1
 
 }
 

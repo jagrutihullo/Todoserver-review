@@ -18,88 +18,101 @@ type TaskModel struct {
 
 //epository for task
 type TaskRepository interface {
-	Create(task Task, list List) []error
+	Create(task Task, list List) error
 
-	Fetch(ID uint) (Task, []error)
+	Fetch(ID uint) (Task, error)
 
-	Update(task Task) []error
+	Update(task Task) error
 
-	Delete(ID uint) []error
+	Delete(ID uint) error
 }
 
 //create task
-func (taskModel TaskModel) Create(task Task, list List) []error {
-	var errors []error
+func (taskModel TaskModel) Create(task Task, list List) error {
+	var error1 error
+	var errorsArr []error
 	var todo TodoList
+
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	errors = db.First(&todo, "id = ? and isnull(deleted_at)", list.ID).GetErrors()
-	if len(errors) != 0 {
-		return errors
+	errorsArr = db.First(&todo, "id = ? and isnull(deleted_at)", list.ID).GetErrors()
+	if len(errorsArr) != 0 {
+		error1 = ErrorsConv(errorsArr)
+		return error1
 	}
 
 	taskModel.Description = task.Description
 	taskModel.Status = task.Status
 	taskModel.Deadline = task.Deadline
 	taskModel.LID = list.ID
-	errors = db.Create(&taskModel).GetErrors()
-	return errors
+	errorsArr = db.Create(&taskModel).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return error1
 }
 
 //update task
-func (taskModel TaskModel) Update(task Task) []error {
-	var errors []error
+func (taskModel TaskModel) Update(task Task) error {
+	var error1 error
+	var errorsArr []error
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	errors = db.Find(&taskModel, task.ID).GetErrors()
-	if len(errors) != 0 {
-		return errors
+	errorsArr = db.Find(&taskModel, task.ID).GetErrors()
+	if len(errorsArr) != 0 {
+		error1 = ErrorsConv(errorsArr)
+		return error1
 	}
 	taskModel.Description = task.Description
 	taskModel.Status = task.Status
 	taskModel.Deadline = task.Deadline
 
-	errors = db.Save(&taskModel).GetErrors()
-	return errors
+	errorsArr = db.Save(&taskModel).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return error1
 }
 
 //delete task - gorm creates TIMESTAMP deleted_at, not actual delete
-func (taskModel TaskModel) Delete(ID uint) []error {
-	var errors []error
+func (taskModel TaskModel) Delete(ID uint) error {
+	var errorsArr []error
+	var error1 error
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return []error{err}
+		return err
 	}
 
-	errors = db.First(&taskModel, "id = ?", ID).GetErrors()
-	if len(errors) != 0 {
-		return errors
+	errorsArr = db.First(&taskModel, "id = ?", ID).GetErrors()
+	if len(errorsArr) != 0 {
+		error1 = ErrorsConv(errorsArr)
+		return error1
 	}
-	errors = db.Delete(&taskModel).GetErrors()
-	return errors
+	errorsArr = db.Delete(&taskModel).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return error1
 }
 
 //fetch given task by ID
-func (taskModel TaskModel) Fetch(ID uint) (Task, []error) {
+func (taskModel TaskModel) Fetch(ID uint) (Task, error) {
 	var tempTask Task
-	var errors []error
+	var error1 error
+	var errorsArr []error
+
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()
 	if err != nil {
-		return tempTask, []error{err}
+		return tempTask, err
 	}
 
-	errors = db.First(&taskModel, "id = ? and isnull(deleted_at)", ID).Scan(&tempTask).GetErrors()
-	return tempTask, errors
+	errorsArr = db.First(&taskModel, "id = ? and isnull(deleted_at)", ID).Scan(&tempTask).GetErrors()
+	error1 = ErrorsConv(errorsArr)
+	return tempTask, error1
 }
 
 // func main() {

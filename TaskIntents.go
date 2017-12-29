@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -19,31 +17,27 @@ type FetchTaskIntent struct {
 //fetch task function
 func (fetchTask FetchTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var task Task
-	var errors []error
+	var errors error
 
+	w.Header().Set("Content-Type", "application/json")
 	fetchTask.TaskRepo = TaskModel{}
 	params := mux.Vars(r)
 	i, err := strconv.Atoi(params["id"])
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot identify task id -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	task, errors = fetchTask.TaskRepo.Fetch(uint(i))
 
-	w.Header().Set("Content-Type", "application/json")
-	if len(errors) == 0 {
+	if errors == nil {
 		taskJSON, err := json.Marshal(task)
 		if err != nil {
-			json.NewEncoder(w).Encode(err)
-			log.Fatal("Cannot encode to JSON -", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write(taskJSON)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Task does not exist -", errors)
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	}
 	return
 }
@@ -57,30 +51,34 @@ type CreateTaskIntent struct {
 func (createTask CreateTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var list List
 	var task Task
-	var errors []error
+	var errors error
 
+	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	i, err := strconv.Atoi(params["id"])
-	fmt.Println(err)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 	list.ID = uint(i)
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot read request body -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	err = json.Unmarshal(body, &task)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot encode to JSON -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	if task.Description == "" {
+		http.Error(w, "Task description cannot be empty", http.StatusBadRequest)
+		return
 	}
 
 	createTask.TaskRepo = TaskModel{}
 	errors = createTask.TaskRepo.Create(task, list)
-	if len(errors) != 0 {
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Cannot create task under list -", errors)
+	if errors != nil {
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -95,26 +93,23 @@ type UpdateTaskIntent struct {
 //update task function
 func (updateTask UpdateTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
 	var task Task
-	var errors []error
+	var errors error
 
+	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot read request body -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	err = json.Unmarshal(body, &task)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
-		log.Fatal("Cannot encode to JSON -", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	updateTask.TaskRepo = TaskModel{}
 	errors = updateTask.TaskRepo.Update(task)
-	if len(errors) != 0 {
-		w.WriteHeader(http.StatusNoContent)
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Cannot update task -", errors)
+	if errors != nil {
+		http.Error(w, errors.Error(), http.StatusNoContent)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -128,16 +123,18 @@ type DeleteTaskIntent struct {
 
 //delete task function
 func (deleteTask DeleteTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var errors []error
+	var errors error
 
+	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	i, err := strconv.Atoi(params["id"])
-	fmt.Println(err)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 	deleteTask.TaskRepo = TaskModel{}
 	errors = deleteTask.TaskRepo.Delete(uint(i))
-	if len(errors) != 0 {
-		json.NewEncoder(w).Encode(errors)
-		log.Fatal("Cannot delete task -", errors)
+	if errors != nil {
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
