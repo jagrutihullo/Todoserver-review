@@ -8,7 +8,7 @@ import (
 )
 
 //task gorm model used by gorm
-type Task struct {
+type TaskModel struct {
 	gorm.Model
 	Description string
 	Status      string
@@ -18,84 +18,87 @@ type Task struct {
 
 //epository for task
 type TaskRepository interface {
-	Create(taskEntity TaskEntity) []error
+	Create(task Task, list List) []error
 
-	Fetch(ID uint) (TaskEntity, []error)
+	Fetch(ID uint) (Task, []error)
 
-	Update(taskEntity TaskEntity) []error
+	Update(task Task) []error
 
 	Delete(ID uint) []error
 }
 
 //create task
-func (task Task) Create(taskEntity TaskEntity) []error {
+func (taskModel TaskModel) Create(task Task, list List) []error {
 	var errors []error
 	var todo TodoList
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
+	defer db.Close()
 	if err != nil {
 		return []error{err}
 	}
 
-	errors = db.First(&todo, "id = ? and isnull(deleted_at)", taskEntity.LID).GetErrors()
+	errors = db.First(&todo, "id = ? and isnull(deleted_at)", list.ID).GetErrors()
 	if len(errors) != 0 {
 		return errors
 	}
 
-	task.Description = taskEntity.Description
-	task.Status = taskEntity.Status
-	task.Deadline = taskEntity.Deadline
-	task.LID = taskEntity.LID
-	errors = db.Create(&task).GetErrors()
+	taskModel.Description = task.Description
+	taskModel.Status = task.Status
+	taskModel.Deadline = task.Deadline
+	taskModel.LID = list.ID
+	errors = db.Create(&taskModel).GetErrors()
 	return errors
 }
 
 //update task
-func (task Task) Update(taskEntity TaskEntity) []error {
+func (taskModel TaskModel) Update(task Task) []error {
 	var errors []error
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
+	defer db.Close()
 	if err != nil {
 		return []error{err}
 	}
 
-	errors = db.Find(&task, taskEntity.ID).GetErrors()
+	errors = db.Find(&taskModel, task.ID).GetErrors()
 	if len(errors) != 0 {
 		return errors
 	}
-	task.Description = taskEntity.Description
-	task.Status = taskEntity.Status
-	task.Deadline = taskEntity.Deadline
-	task.LID = taskEntity.LID
+	taskModel.Description = task.Description
+	taskModel.Status = task.Status
+	taskModel.Deadline = task.Deadline
 
-	errors = db.Save(&task).GetErrors()
+	errors = db.Save(&taskModel).GetErrors()
 	return errors
 }
 
 //delete task - gorm creates TIMESTAMP deleted_at, not actual delete
-func (task Task) Delete(ID uint) []error {
+func (taskModel TaskModel) Delete(ID uint) []error {
 	var errors []error
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
+	defer db.Close()
 	if err != nil {
 		return []error{err}
 	}
 
-	errors = db.First(&task, "id = ?", ID).GetErrors()
+	errors = db.First(&taskModel, "id = ?", ID).GetErrors()
 	if len(errors) != 0 {
 		return errors
 	}
-	errors = db.Delete(&task).GetErrors()
+	errors = db.Delete(&taskModel).GetErrors()
 	return errors
 }
 
 //fetch given task by ID
-func (task Task) Fetch(ID uint) (TaskEntity, []error) {
-	var tempTask TaskEntity
+func (taskModel TaskModel) Fetch(ID uint) (Task, []error) {
+	var tempTask Task
 	var errors []error
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
+	defer db.Close()
 	if err != nil {
 		return tempTask, []error{err}
 	}
 
-	errors = db.First(&task, "id = ? and isnull(deleted_at)", ID).Scan(&tempTask).GetErrors()
+	errors = db.First(&taskModel, "id = ? and isnull(deleted_at)", ID).Scan(&tempTask).GetErrors()
 	return tempTask, errors
 }
 
