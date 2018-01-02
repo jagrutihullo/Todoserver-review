@@ -58,7 +58,7 @@ func (glr GormListRepo) Update(todoEntity List) error {
 		return err
 	}
 
-	errorsArr = db.Find(&todoList, todoEntity.ID).GetErrors()
+	errorsArr = db.Find(&todoList, "id = ? and isnull(deleted_at)", todoEntity.ID).GetErrors()
 	if len(errorsArr) != 0 {
 		error1 = ErrorsConv(errorsArr)
 		return error1

@@ -56,7 +56,7 @@ func (gtr GormTaskRepo) Update(task Task) error {
 		return err
 	}
 
-	errorsArr = db.First(&taskModel, task.ID).GetErrors()
+	errorsArr = db.First(&taskModel, "id = ? and isnull(deleted_at)", task.ID).GetErrors()
 	if len(errorsArr) != 0 {
 		error1 = ErrorsConv(errorsArr)
 		return error1
@@ -79,7 +79,7 @@ func (gtr GormTaskRepo) Delete(ID uint) error {
 		return err
 	}
 
-	errorsArr = db.First(&taskModel, "id = ?", ID).GetErrors()
+	errorsArr = db.First(&taskModel, "id = ? and isnull(deleted_at)", ID).GetErrors()
 	if len(errorsArr) != 0 {
 		error1 = ErrorsConv(errorsArr)
 		return error1
@@ -91,10 +91,12 @@ func (gtr GormTaskRepo) Delete(ID uint) error {
 
 //fetch given task by ID
 func (gtr GormTaskRepo) Fetch(ID uint) (Task, error) {
-	var tempTask Task
-	var error1 error
-	var errorsArr []error
-	var taskModel TaskModel
+	var (
+		tempTask  Task
+		error1    error
+		errorsArr []error
+		taskModel TaskModel
+	)
 
 	db, err := gorm.Open("mysql", "root:root@/todoserver?charset=utf8&parseTime=True&loc=Local")
 	defer db.Close()

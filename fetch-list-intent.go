@@ -23,16 +23,15 @@ func (fetchListIntent FetchListIntent) Enact(w http.ResponseWriter, r *http.Requ
 	list, errors = fetchListIntent.ListRepo.Fetch(name)
 
 	w.Header().Set("Content-Type", "application/json")
-	if errors == nil {
-		listJSON, err := json.Marshal(list)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write(listJSON)
-	} else {
+	if errors != nil {
 		http.Error(w, errors.Error(), http.StatusBadRequest)
 	}
+	listJSON, err := json.Marshal(list)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(listJSON)
 	return
 }

@@ -28,15 +28,15 @@ func (fetchTask FetchTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
 
 	task, errors = fetchTask.TaskRepo.Fetch(uint(i))
 
-	if errors == nil {
-		taskJSON, err := json.Marshal(task)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write(taskJSON)
-	} else {
+	if errors != nil {
 		http.Error(w, errors.Error(), http.StatusBadRequest)
 	}
+	taskJSON, err := json.Marshal(task)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(taskJSON)
+
 	return
 }
