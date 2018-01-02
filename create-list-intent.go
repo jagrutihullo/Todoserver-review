@@ -6,15 +6,17 @@ import (
 	"net/http"
 )
 
-//intent to create list
+//CreateListIntent is an intent to create list
 type CreateListIntent struct {
 	ListRepo TodoListRepository
 }
 
-//create list function
+//Enact function is for CreateListIntent to create list through http
 func (createListIntent CreateListIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var list List
-	var errors error
+	var (
+		list   List
+		errors error
+	)
 
 	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
@@ -26,12 +28,11 @@ func (createListIntent CreateListIntent) Enact(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	createListIntent.ListRepo = GormListRepo{}
+
 	errors = createListIntent.ListRepo.Create(list)
 	if errors != nil {
 		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	return
 }

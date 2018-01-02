@@ -2,7 +2,7 @@ package main
 
 import "time"
 
-//task entity
+//Task is an entity under List, used throughout the system.
 type Task struct {
 	ID          uint
 	Description string

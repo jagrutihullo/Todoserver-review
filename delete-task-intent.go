@@ -7,14 +7,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//intent to delete task
+//DeleteTaskIntent is an intent to delete task
 type DeleteTaskIntent struct {
-	TaskRepo TaskRepository
+	ListRepo TodoListRepository
 }
 
-//delete task function
+//Enact function is for DeleteTaskIntent to delete task through http
 func (deleteTask DeleteTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var errors error
+	var (
+		errors error
+		list   List
+	)
 
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -22,13 +25,13 @@ func (deleteTask DeleteTaskIntent) Enact(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	deleteTask.TaskRepo = GormTaskRepo{}
-	errors = deleteTask.TaskRepo.Delete(uint(i))
+
+	list.Tasks = make([]Task, 1)
+	list.Tasks[0].ID = uint(i)
+	errors = deleteTask.ListRepo.DeleteTask(list)
 	if errors != nil {
 		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	return
-
 }

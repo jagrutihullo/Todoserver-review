@@ -6,15 +6,17 @@ import (
 	"net/http"
 )
 
-//intent to update list name
+//UpdateListNameIntent is an intent to update single list name
 type UpdateListNameIntent struct {
 	ListRepo TodoListRepository
 }
 
-//update list name function
+//Enact function is for UpdateListNameIntent to update list through http
 func (updateListIntent UpdateListNameIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var list List
-	var errors error
+	var (
+		list   List
+		errors error
+	)
 
 	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
@@ -26,12 +28,12 @@ func (updateListIntent UpdateListNameIntent) Enact(w http.ResponseWriter, r *htt
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	updateListIntent.ListRepo = GormListRepo{}
+
 	errors = updateListIntent.ListRepo.Update(list)
 	if errors != nil {
-		http.Error(w, errors.Error(), http.StatusNoContent)
+		http.Error(w, errors.Error(), http.StatusNoContent|http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	return
+
 }

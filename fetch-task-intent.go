@@ -8,35 +8,37 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//intent to fetch task
+//FetchTaskIntent is an intent to access task
 type FetchTaskIntent struct {
-	TaskRepo TaskRepository
+	ListRepo TodoListRepository
 }
 
-//fetch task function
+//Enact function is for FetchTaskIntent to fetch task through http
 func (fetchTask FetchTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var task Task
-	var errors error
+	var (
+		list   List
+		errors error
+	)
 
 	w.Header().Set("Content-Type", "application/json")
-	fetchTask.TaskRepo = GormTaskRepo{}
+
 	params := mux.Vars(r)
 	i, err := strconv.Atoi(params["id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	task, errors = fetchTask.TaskRepo.Fetch(uint(i))
+	list.Tasks = make([]Task, 1)
+	list.Tasks[0].ID = uint(i)
+	list, errors = fetchTask.ListRepo.FetchTask(list)
 
 	if errors != nil {
-		http.Error(w, errors.Error(), http.StatusBadRequest)
+		http.Error(w, errors.Error(), http.StatusNoContent|http.StatusBadRequest)
 	}
-	taskJSON, err := json.Marshal(task)
+	taskJSON, err := json.Marshal(list)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(taskJSON)
-
-	return
 }

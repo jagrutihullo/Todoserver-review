@@ -5,22 +5,23 @@ import (
 	"net/http"
 )
 
-//intent to fetch all lists
+//FetchAllListIntent is an intent to access all lists
 type FetchAllListIntent struct {
 	ListRepo TodoListRepository
 }
 
-//fetch lists function
+//Enact function is for FetchAllListIntent to access lists through http
 func (fetchAllIntent FetchAllListIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var lists []List
-	var errors error
+	var (
+		lists  []List
+		errors error
+	)
 
-	fetchAllIntent.ListRepo = GormListRepo{}
 	lists, errors = fetchAllIntent.ListRepo.FetchAll()
 
 	w.Header().Set("Content-Type", "application/json")
 	if errors != nil {
-		http.Error(w, errors.Error(), http.StatusBadRequest)
+		http.Error(w, errors.Error(), http.StatusNoContent|http.StatusBadRequest)
 	}
 	listsJSON, err := json.Marshal(lists)
 
@@ -29,5 +30,4 @@ func (fetchAllIntent FetchAllListIntent) Enact(w http.ResponseWriter, r *http.Re
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(listsJSON)
-	return
 }

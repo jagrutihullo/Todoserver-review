@@ -2,7 +2,7 @@ package main
 
 import "time"
 
-//list entity
+//List is an entity used throughout the system.
 type List struct {
 	ID        uint
 	Name      string

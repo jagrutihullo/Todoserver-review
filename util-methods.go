@@ -2,7 +2,7 @@ package main
 
 import "errors"
 
-//function to convert array of errors into single error
+//ErrorsConv converts array of errors into single error
 func ErrorsConv(errorsArr []error) error {
 	var error1 error
 	var errString string

@@ -9,16 +9,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//intent to create task under list
+//CreateTaskIntent is an intent to create task under list
 type CreateTaskIntent struct {
-	TaskRepo TaskRepository
+	ListRepo TodoListRepository
 }
 
-//create task function
+//Enact function is for CreateTaskIntent to create task through http
 func (createTask CreateTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var list List
-	var task Task
-	var errors error
+	var (
+		list   List
+		task   Task
+		errors error
+	)
 
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -42,12 +44,12 @@ func (createTask CreateTaskIntent) Enact(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	createTask.TaskRepo = GormTaskRepo{}
-	errors = createTask.TaskRepo.Create(task, list)
+	list.Tasks = make([]Task, 1)
+	list.Tasks[0] = task
+	errors = createTask.ListRepo.CreateTask(list)
 	if errors != nil {
 		http.Error(w, errors.Error(), http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	return
 }

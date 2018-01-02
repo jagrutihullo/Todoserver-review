@@ -3,28 +3,35 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
-//intent to fetch list by name
+//FetchListIntent is an intent to access list by name
 type FetchListIntent struct {
 	ListRepo TodoListRepository
 }
 
-//fetch list function
+//Enact function is for FetchListIntent to access list through http
 func (fetchListIntent FetchListIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var list List
-	var errors error
+	var (
+		list   List
+		errors error
+	)
 
-	fetchListIntent.ListRepo = GormListRepo{}
 	params := mux.Vars(r)
-	name := params["name"]
-	list, errors = fetchListIntent.ListRepo.Fetch(name)
+	i, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	list.ID = uint(i)
+	list, errors = fetchListIntent.ListRepo.Fetch(list)
 
 	w.Header().Set("Content-Type", "application/json")
 	if errors != nil {
-		http.Error(w, errors.Error(), http.StatusBadRequest)
+		http.Error(w, errors.Error(), http.StatusNoContent|http.StatusBadRequest)
 	}
 	listJSON, err := json.Marshal(list)
 
@@ -33,5 +40,4 @@ func (fetchListIntent FetchListIntent) Enact(w http.ResponseWriter, r *http.Requ
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(listJSON)
-	return
 }

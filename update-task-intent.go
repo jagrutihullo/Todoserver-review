@@ -6,15 +6,18 @@ import (
 	"net/http"
 )
 
-//intent to update task
+//UpdateTaskIntent is an intent to update single task
 type UpdateTaskIntent struct {
-	TaskRepo TaskRepository
+	ListRepo TodoListRepository
 }
 
-//update task function
+//Enact function is for UpdateTaskIntent to update task through http
 func (updateTask UpdateTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
-	var task Task
-	var errors error
+	var (
+		task   Task
+		errors error
+		list   List
+	)
 
 	w.Header().Set("Content-Type", "application/json")
 	body, err := ioutil.ReadAll(r.Body)
@@ -27,12 +30,13 @@ func (updateTask UpdateTaskIntent) Enact(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	updateTask.TaskRepo = GormTaskRepo{}
-	errors = updateTask.TaskRepo.Update(task)
+	list.Tasks = make([]Task, 1)
+	list.Tasks[0] = task
+	errors = updateTask.ListRepo.UpdateTask(list)
 	if errors != nil {
-		http.Error(w, errors.Error(), http.StatusNoContent)
+		http.Error(w, errors.Error(), http.StatusNoContent|http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	return
+
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//task gorm model used by gorm
+//TaskModel is a model used by gorm for task_models table.
 type TaskModel struct {
 	gorm.Model
 	Description string
@@ -15,9 +15,8 @@ type TaskModel struct {
 	LID         uint
 }
 
-//function to convert task entity to task model
-func TaskToModel(task Task) TaskModel {
-	var taskModel TaskModel
+//TaskToModel converts task entity to task model
+func TaskToModel(task Task, taskModel TaskModel) TaskModel {
 	taskModel.Description = task.Description
 	taskModel.Status = task.Status
 	taskModel.Deadline = task.Deadline

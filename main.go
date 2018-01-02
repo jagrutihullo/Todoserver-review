@@ -8,23 +8,25 @@ import (
 )
 
 func main() {
-	var fetchList FetchListIntent
-	var createList CreateListIntent
-	var updateList UpdateListNameIntent
-	var deleteList DeleteListIntent
-	var fetchAll FetchAllListIntent
+	ListRepo := GormListRepo{}
 
-	var fetchTask FetchTaskIntent
-	var createTask CreateTaskIntent
-	var updateTask UpdateTaskIntent
-	var deleteTask DeleteTaskIntent
+	fetchList := FetchListIntent{ListRepo}
+	createList := CreateListIntent{ListRepo}
+	updateList := UpdateListNameIntent{ListRepo}
+	deleteList := DeleteListIntent{ListRepo}
+	fetchAll := FetchAllListIntent{ListRepo}
+
+	fetchTask := FetchTaskIntent{ListRepo}
+	createTask := CreateTaskIntent{ListRepo}
+	updateTask := UpdateTaskIntent{ListRepo}
+	deleteTask := DeleteTaskIntent{ListRepo}
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/list/{name}", fetchList.Enact).Methods("GET")
+	router.HandleFunc("/list/{id}", fetchList.Enact).Methods("GET")
 	router.HandleFunc("/list", createList.Enact).Methods("POST")
 	router.HandleFunc("/list", updateList.Enact).Methods("PATCH")
-	router.HandleFunc("/list/{name}", deleteList.Enact).Methods("DELETE")
+	router.HandleFunc("/list/{id}", deleteList.Enact).Methods("DELETE")
 	router.HandleFunc("/list", fetchAll.Enact).Methods("GET")
 
 	router.HandleFunc("/task/{id}", fetchTask.Enact).Methods("GET")
@@ -32,6 +34,6 @@ func main() {
 	router.HandleFunc("/task", updateTask.Enact).Methods("PATCH")
 	router.HandleFunc("/task/{id}", deleteTask.Enact).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8000", router))
+	log.Fatal(http.ListenAndServe(":9000", router))
 	http.Handle("/", router)
 }
