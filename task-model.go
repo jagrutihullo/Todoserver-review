@@ -16,9 +16,8 @@ type TaskModel struct {
 }
 
 //TaskToModel converts task entity to task model
-func TaskToModel(task Task, taskModel TaskModel) TaskModel {
+func (taskModel *TaskModel) TaskToModel(task Task) {
 	taskModel.Description = task.Description
 	taskModel.Status = task.Status
 	taskModel.Deadline = task.Deadline
-	return taskModel
 }

@@ -10,7 +10,7 @@ import (
 
 //FetchTaskIntent is an intent to access task
 type FetchTaskIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for FetchTaskIntent to fetch task through http
@@ -30,7 +30,7 @@ func (fetchTask FetchTaskIntent) Enact(w http.ResponseWriter, r *http.Request) {
 
 	list.Tasks = make([]Task, 1)
 	list.Tasks[0].ID = uint(i)
-	list, errors = fetchTask.ListRepo.FetchTask(list)
+	list, errors = fetchTask.ListRepo.FetchTaskByID(list)
 
 	if errors != nil {
 		http.Error(w, errors.Error(), http.StatusNoContent|http.StatusBadRequest)

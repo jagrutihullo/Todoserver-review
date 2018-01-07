@@ -8,7 +8,7 @@ import (
 
 //UpdateTaskIntent is an intent to update single task
 type UpdateTaskIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for UpdateTaskIntent to update task through http

@@ -9,7 +9,7 @@ import (
 
 //DeleteListIntent is an intent to delete list & tasks under it
 type DeleteListIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for DeleteListIntent to delete list through http

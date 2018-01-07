@@ -8,7 +8,7 @@ import (
 
 //UpdateListNameIntent is an intent to update single list name
 type UpdateListNameIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for UpdateListNameIntent to update list through http

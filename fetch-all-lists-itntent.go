@@ -7,7 +7,7 @@ import (
 
 //FetchAllListIntent is an intent to access all lists
 type FetchAllListIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for FetchAllListIntent to access lists through http

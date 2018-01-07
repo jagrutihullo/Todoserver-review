@@ -10,7 +10,7 @@ import (
 
 //FetchListIntent is an intent to access list by name
 type FetchListIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for FetchListIntent to access list through http
@@ -27,7 +27,7 @@ func (fetchListIntent FetchListIntent) Enact(w http.ResponseWriter, r *http.Requ
 	}
 
 	list.ID = uint(i)
-	list, errors = fetchListIntent.ListRepo.Fetch(list)
+	list, errors = fetchListIntent.ListRepo.FetchByID(list)
 
 	w.Header().Set("Content-Type", "application/json")
 	if errors != nil {

@@ -8,7 +8,7 @@ import (
 
 //CreateListIntent is an intent to create list
 type CreateListIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for CreateListIntent to create list through http

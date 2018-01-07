@@ -11,7 +11,7 @@ import (
 
 //CreateTaskIntent is an intent to create task under list
 type CreateTaskIntent struct {
-	ListRepo TodoListRepository
+	ListRepo ListRepository
 }
 
 //Enact function is for CreateTaskIntent to create task through http
